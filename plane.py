@@ -1,9 +1,10 @@
+import random
 class plane:
-	import random
-	def __init__(self, player, planeMap = []):
-		self.planeNum = p #identify which plane this is
-		self.player = p #the player
+	def __init__(self, num, pl, color, planeMap = []):
+		self.planeNum = num #identify which plane this is
+		self.player = pl #the player
 		self.map = planeMap #matrix of points for floor/holes
+		self.color = color
 	# def advance(self, amount): #advances current y-position by an amount
 	# 	self.pos[1] += amount
 	# 	return self.pos
@@ -12,7 +13,16 @@ class plane:
 		# return self.pos
 	def populate(self, numRows, numCols): #randomly populate itself
 		self.map = []
-		for x in range(numRows):
-			self.map.append([(1 if random.randint(1, 5) < 5 else 0) for i in range(numCols)]) #floors are weighted 4x more than holes
+		mapRef = []
+		for x in range(numRows/5):
+			mapRef.append([(1 if random.randint(1, 10) < 10 else 0) for i in range(numCols/5)]) #floors are weighted 9x more than holes
+		for row in mapRef:
+			realRow = []
+			for entry in row:
+				for i in range(5):
+					realRow.append(entry)
+			for i in range(5):
+				self.map.append(realRow)
+		return self.map
 	def onFloor(self): #returns True if the current position is on an existing floor, false if it is on a hole
 		return (self.map[int(self.player.x)][int(self.player.y)] == 1) #1 constitutes floor, 0 indicates hole

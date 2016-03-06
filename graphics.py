@@ -1,6 +1,7 @@
 #graphics
-import pygame
-import random
+import pygame, random, sys, time
+from plane import plane
+from player import player
 
 pygame.init()
 pygame.display.init()
@@ -48,31 +49,60 @@ def create_map(num_lines):
 	return map
 
 	
-def update(coordinate1, coordinate2, coordinate3, coordinate4):
+def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player):
 	done = False
 	index = 1
+	maps = [map1, map2, map3, map4]
 	while not done:
 		pygame.display.update()
-		draw_grid(coordinate1, map1, index, screen, num_lines, (0, 125, 125))
-		draw_grid(coordinate2, map2, index, screen, num_lines, (0, 125, 125))
-		draw_grid(coordinate3, map3, index, screen, num_lines, (125, 0, 125))
-		draw_grid(coordinate4, map4, index, screen, num_lines, (125, 0, 125))
-		pygame.time.wait(20)
+		keys = pygame.key.get_pressed()
+		if(keys[pygame.K_LEFT] != 0):
+			if(player.x > 100):
+				player.x -= 10
+			else:
+				player.x = 900
+				maps = [maps[2], maps[3], maps[1], maps[0]]
+		elif(keys[pygame.K_RIGHT] != 0):
+			if(player.x < 920):
+				player.x += 10
+			else:
+				player.x = 120
+				maps = [maps[3], maps[2], maps[0], maps[1]]
+		if(keys[pygame.K_UP] != 0 and not player.inAir):
+			player.goingUp = True
+			player.inAir = True
+		elif(player.inAir):
+			if(player.jumpHeight <= 0 and not player.goingUp):
+				player.jumpHeight = 0
+				player.inAir = False
+			elif(player.goingUp and player.jumpHeight < 80):
+				player.jumpHeight += 10
+			elif(player.goingUp and player.jumpHeight >= 80):
+				player.goingUp = False
+			else:
+				player.jumpHeight -= 10
+		draw_grid(coordinate1, maps[0], index, screen, num_lines)
+		draw_grid(coordinate2, maps[1], index, screen, num_lines)
+		draw_grid(coordinate3, maps[2], index, screen, num_lines)
+		draw_grid(coordinate4, maps[3], index, screen, num_lines)
+		draw_player(player, screen)
+		pygame.time.wait(25)
 		index += 1
 		print index
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit(); sys.exit();
-
-def draw_grid(coordinates, map, index, screen, num_lines, input_color):
+def draw_player(player, screen):
+	pygame.draw.circle(screen, player.color, [player.x, player.y - player.jumpHeight], 30)
+def draw_grid(coordinates, mapC, index, screen, num_lines):
 	copy = index
 	for i in range(num_lines):
 		for j in range(num_lines):
 			color = (0, 0, 0)
-			if (map[j + index][i] == 1):
-				color = input_color
+			if (mapC.map[j + index][i] == 1):
+				color = mapC.color
 			count = i * (num_lines) + j
-			pygame.draw.polygon(screen, color, coordinates[-count], 0)
+			pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
 
 def create_coordinates(side, width, height, num_lines, depth):
 	y_loc = height / 2
@@ -158,17 +188,26 @@ def create_horizontal_line(p):
 	p_y = p[1]
 	return [p_y, 0]
 
-
-width = 1020
-height = 1020
-num_lines = 60
-depth = 400
-left_coordinates = create_coordinates('left', width, height, num_lines, depth)
-right_coordinates = create_coordinates('right', width, height, num_lines, depth)
-bottom_coordinates = create_coordinates('bottom', width, height, num_lines, depth)
-top_coordinates = create_coordinates('top', width, height, num_lines, depth)
-map1 = create_map(num_lines)
-map2 = create_map(num_lines)
-map3 = create_map(num_lines)
-map4 = create_map(num_lines)
-update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates)
+if __name__ == '__main__':
+	width = 1020
+	height = 1020
+	num_lines = 60
+	depth = 400
+	left_coordinates = create_coordinates('left', width, height, num_lines, depth)
+	right_coordinates = create_coordinates('right', width, height, num_lines, depth)
+	bottom_coordinates = create_coordinates('bottom', width, height, num_lines, depth)
+	top_coordinates = create_coordinates('top', width, height, num_lines, depth)
+	# map1 = create_map(num_lines)
+	# map2 = create_map(num_lines)
+	# map3 = create_map(num_lines)
+	# map4 = create_map(num_lines)
+	play = player(510, 925)
+	map1 = plane(1, play, (0, 125, 125))
+	map2 = plane(2, play, (0, 125, 125))
+	map3 = plane(3, play, (125, 0, 125))
+	map4 = plane(4, play, (125, 0, 125))
+	map1.populate(1000, num_lines)
+	map2.populate(1000, num_lines)
+	map3.populate(1000, num_lines)
+	map4.populate(1000, num_lines)
+	update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play)
