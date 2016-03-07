@@ -14,8 +14,9 @@ class plane:
 	def populate(self, numRows, numCols, size): #randomly populate itself
 		self.map = []
 		mapRef = []
+		weight = 4
 		for x in range(numRows/size):
-			mapRef.append([(1 if random.randint(1, 6) < 6 else 0) for i in range(numCols/size)]) #floors are weighted 9x more than holes
+			mapRef.append([(1 if random.randint(1, weight) < weight else 0) for i in range(numCols/size)]) #floors are weighted more than holes
 		for row in mapRef:
 			realRow = []
 			for entry in row:

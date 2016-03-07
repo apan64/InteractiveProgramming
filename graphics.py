@@ -99,7 +99,7 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 			max_score = score
 		show_score(score, max_score, myfont, width, height)
 		draw_player(player, screen)
-		pygame.time.wait(10)
+		pygame.time.wait(8)
 		index += 1
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -115,8 +115,13 @@ def show_score(score, max_score, myfont, width, height):
 def round_player_loc(x, width, num_lines):
 	new_x = 1.0 * (width - x) / width * num_lines
 	values_to_check = []
+	fix = 0
+	if new_x < num_lines / 3:
+		fix = -1
+	elif new_x > 2 * num_lines / 3:
+		fix = 1
 	for i in range(-2, 2):
-		values_to_check.append([int(new_x) + i, 2])
+		values_to_check.append([int(new_x) + i + fix, 2])
 	return values_to_check
 
 def draw_player(player, screen):
@@ -134,12 +139,12 @@ def draw_grid(coordinates, mapC, index, screen, num_lines, reverse, locs, bottom
 					for loc in locs:				
 							if loc[0] == i and j == loc[1]:
 								color = (255, 0, 0)
-				pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
+				pygame.draw.polygon(screen, color, coordinates[-count], 0)
 			else:
 				if (mapC.map[j + index][-i] == 1):
 					color = mapC.color
 				count = i * (num_lines) + j
-				pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
+				pygame.draw.polygon(screen, color, coordinates[-count], 0)
 
 def collision(mapC, locs, index, in_air):
 	if in_air:
@@ -269,8 +274,8 @@ if __name__ == '__main__':
 	map2 = plane(2, play, (0, 125, 125))
 	map3 = plane(3, play, (125, 0, 125))
 	map4 = plane(4, play, (125, 0, 125))
-	map1.populate(10000, num_lines, 10)
-	map2.populate(10000, num_lines, 10)
-	map3.populate(10000, num_lines, 10)
-	map4.populate(10000, num_lines, 10)
+	map1.populate(10000, num_lines, 6)
+	map2.populate(10000, num_lines, 6)
+	map3.populate(10000, num_lines, 6)
+	map4.populate(10000, num_lines, 6)
 	update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines)
