@@ -16,7 +16,7 @@ screen.fill(black)
 def create_map(num_lines):
 	hole_size = 10
 	map = []
-	for i in range(1000):
+	for i in range(10000):
 		nested_map = []
 		for j in range(num_lines):
 			nested_map.append(1)
@@ -36,12 +36,12 @@ def create_map(num_lines):
 
 	make_zero_width = 0
 	make_zero_depth = 0
-	for i in range(1000):
+	for i in range(10000):
 		for j in range(num_lines):
 			if random.randint(0, 400) == 0 and make_zero_width <= 0:
-				make_zero_width = random.randint(2, 30)
+				make_zero_width = random.randint(5, 30)
 			if random.randint(0, 1000) == 0 and make_zero_depth <= 0:
-				make_zero_depth = random.randint(2, 8)
+				make_zero_depth = random.randint(5, 8)
 			if make_zero_width > 0 or make_zero_depth > 0:
 				map[i][j] = 0
 			make_zero_width -= 1
@@ -83,10 +83,10 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 				player.goingUp = False
 			else:
 				player.jumpHeight -= 10
-		draw_grid(coordinate1, maps[0], index, screen, num_lines)
-		draw_grid(coordinate2, maps[1], index, screen, num_lines)
-		draw_grid(coordinate3, maps[2], index, screen, num_lines)
-		draw_grid(coordinate4, maps[3], index, screen, num_lines)
+		draw_grid(coordinate1, maps[0], index, screen, num_lines, False) #left
+		draw_grid(coordinate2, maps[1], index, screen, num_lines, True) #right
+		draw_grid(coordinate3, maps[2], index, screen, num_lines, True) #top
+		draw_grid(coordinate4, maps[3], index, screen, num_lines, False) #bottom
 		draw_player(player, screen)
 		pygame.time.wait(25)
 		index += 1
@@ -96,14 +96,22 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 				pygame.quit(); sys.exit();
 def draw_player(player, screen):
 	pygame.draw.circle(screen, player.color, [player.x, player.y - player.jumpHeight], 30)
-def draw_grid(coordinates, mapC, index, screen, num_lines):
+
+def draw_grid(coordinates, mapC, index, screen, num_lines, reverse):
 	for i in range(num_lines):
 		for j in range(num_lines):
 			color = (0, 0, 0)
-			if (mapC.map[j + index][i] == 1):
-				color = mapC.color
-			count = i * (num_lines) + j
-			pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
+			if not reverse:
+				if (mapC.map[j + index][i] == 1):
+					color = mapC.color
+				count = i * (num_lines) + j
+				pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
+			else:
+				if (mapC.map[j + index][-i] == 1):
+					color = mapC.color
+				count = i * (num_lines) + j
+				pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
+
 
 def create_coordinates(side, width, height, num_lines, depth):
 	y_loc = height / 2
@@ -139,15 +147,30 @@ def create_coordinates(side, width, height, num_lines, depth):
 			p2 = find_intersection(lines[i + 1], vert_lines[j])
 			p3 = find_intersection(lines[i + 1], vert_lines[j + 1])
 			p4 = find_intersection(lines[i], vert_lines[j + 1])
-			if side == 'left' or side == 'right':
+			if side == 'left':
 				coordinates.append([p1, p2, p3, p4])
 				rand_color = (random.uniform(0, 255), random.uniform(0, 255), random.uniform(0, 255))
 				pygame.draw.polygon(screen, rand_color, [p1, p2, p3, p4], 0)
-			elif side == 'bottom' or side == 'top':
+			elif side == 'right':
+				coordinates.append([p1, p2, p3, p4])
+				rand_color = (random.uniform(0, 255), random.uniform(0, 255), random.uniform(0, 255))
+				pygame.draw.polygon(screen, rand_color, [p1, p2, p3, p4], 0)
+			elif side == 'bottom':
+				coordinates.append([reflect_point(p1), reflect_point(p2), reflect_point(p3), reflect_point(p4)])
+				rand_color = (random.uniform(0, 255), random.uniform(0, 255), random.uniform(0, 255))
+				pygame.draw.polygon(screen, rand_color, [reflect_point(p1), reflect_point(p2), reflect_point(p3), reflect_point(p4)], 0)
+			elif side == 'top':
 				coordinates.append([reflect_point(p1), reflect_point(p2), reflect_point(p3), reflect_point(p4)])
 				rand_color = (random.uniform(0, 255), random.uniform(0, 255), random.uniform(0, 255))
 				pygame.draw.polygon(screen, rand_color, [reflect_point(p1), reflect_point(p2), reflect_point(p3), reflect_point(p4)], 0)
 	return coordinates
+
+def flip_horizontal(width, height, p):
+	return [width - p[0], p[1]]
+
+def flip_vertical(width, height, p):
+	return [p[0], height - p[1]]
+
 
 def reflect_point(p):
 	return [p[1], p[0]]
@@ -196,8 +219,8 @@ if __name__ == '__main__':
 	depth = 400
 	left_coordinates = create_coordinates('left', width, height, num_lines, depth)
 	right_coordinates = create_coordinates('right', width, height, num_lines, depth)
-	bottom_coordinates = create_coordinates('bottom', width, height, num_lines, depth)
 	top_coordinates = create_coordinates('top', width, height, num_lines, depth)
+	bottom_coordinates = create_coordinates('bottom', width, height, num_lines, depth)
 	# map1 = create_map(num_lines)
 	# map2 = create_map(num_lines)
 	# map3 = create_map(num_lines)
