@@ -53,6 +53,9 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 	done = False
 	index = 1
 	maps = [map1, map2, map3, map4]
+	myfont = pygame.font.SysFont("monospace", 20)
+	score = 0
+	max_score = 0
 	while not done:
 		# if(maps[3].map[index][int(player.x/820)] == 0):
 		# 	break
@@ -83,21 +86,43 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 				player.goingUp = False
 			else:
 				player.jumpHeight -= 10
-		draw_grid(coordinate1, maps[0], index, screen, num_lines, False) #left
-		draw_grid(coordinate2, maps[1], index, screen, num_lines, True) #right
-		draw_grid(coordinate3, maps[2], index, screen, num_lines, True) #top
-		draw_grid(coordinate4, maps[3], index, screen, num_lines, False) #bottom
+		locs = round_player_loc(player.x, width, num_lines)
+		if collision(maps[3], locs, index, player.inAir):
+			score = 0
+		draw_grid(coordinate1, maps[0], index, screen, num_lines, False, locs, False, player.inAir) #left
+		draw_grid(coordinate2, maps[1], index, screen, num_lines, True, locs, False, player.inAir) #right
+		draw_grid(coordinate3, maps[2], index, screen, num_lines, True, locs, False, player.inAir) #top
+		draw_grid(coordinate4, maps[3], index, screen, num_lines, False, locs, True, player.inAir) #bottom
+		
+		score += 1
+		if score > max_score:
+			max_score = score
+		show_score(score, max_score, myfont, width, height)
 		draw_player(player, screen)
-		pygame.time.wait(25)
+		pygame.time.wait(10)
 		index += 1
-		print index
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit(); sys.exit();
+
+def show_score(score, max_score, myfont, width, height):
+	pygame.draw.rect(screen, (0, 0, 0), (width / 2 - 100, height / 2 - 100, 200, 200), 0)
+	label = myfont.render(str(score), 1, (255, 255, 255))
+	label2 = myfont.render("Max score: " + str(max_score), 1, (255, 255, 255))
+	screen.blit(label2, (width / 2 - 90, height / 2 - 50))
+	screen.blit(label, (width / 2 - 50, height / 2))
+
+def round_player_loc(x, width, num_lines):
+	new_x = 1.0 * (width - x) / width * num_lines
+	values_to_check = []
+	for i in range(-2, 2):
+		values_to_check.append([int(new_x) + i, 2])
+	return values_to_check
+
 def draw_player(player, screen):
 	pygame.draw.circle(screen, player.color, [player.x, player.y - player.jumpHeight], 30)
 
-def draw_grid(coordinates, mapC, index, screen, num_lines, reverse):
+def draw_grid(coordinates, mapC, index, screen, num_lines, reverse, locs, bottom, in_air):
 	for i in range(num_lines):
 		for j in range(num_lines):
 			color = (0, 0, 0)
@@ -105,12 +130,26 @@ def draw_grid(coordinates, mapC, index, screen, num_lines, reverse):
 				if (mapC.map[j + index][i] == 1):
 					color = mapC.color
 				count = i * (num_lines) + j
+				if bottom and not in_air:
+					for loc in locs:				
+							if loc[0] == i and j == loc[1]:
+								color = (255, 0, 0)
 				pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
 			else:
 				if (mapC.map[j + index][-i] == 1):
 					color = mapC.color
 				count = i * (num_lines) + j
 				pygame.draw.polygon(screen, color, coordinates[-count], 0) #need to find a way to flip the top and right planes (currently reversed)
+
+def collision(mapC, locs, index, in_air):
+	if in_air:
+		return False
+	for loc in locs:
+		x = loc[1] + index
+		y = loc[0]
+		if mapC.map[x][y] == 0:
+			return True
+	return False
 
 
 def create_coordinates(side, width, height, num_lines, depth):
@@ -230,8 +269,8 @@ if __name__ == '__main__':
 	map2 = plane(2, play, (0, 125, 125))
 	map3 = plane(3, play, (125, 0, 125))
 	map4 = plane(4, play, (125, 0, 125))
-	map1.populate(1000, num_lines)
-	map2.populate(1000, num_lines)
-	map3.populate(1000, num_lines)
-	map4.populate(1000, num_lines)
+	map1.populate(10000, num_lines, 10)
+	map2.populate(10000, num_lines, 10)
+	map3.populate(10000, num_lines, 10)
+	map4.populate(10000, num_lines, 10)
 	update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines)

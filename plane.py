@@ -11,17 +11,17 @@ class plane:
 	# def shift(self, amount): #shifts current x-position by an amount
 	# 	self.pos[0] += amount
 		# return self.pos
-	def populate(self, numRows, numCols): #randomly populate itself
+	def populate(self, numRows, numCols, size): #randomly populate itself
 		self.map = []
 		mapRef = []
-		for x in range(numRows/5):
-			mapRef.append([(1 if random.randint(1, 10) < 10 else 0) for i in range(numCols/5)]) #floors are weighted 9x more than holes
+		for x in range(numRows/size):
+			mapRef.append([(1 if random.randint(1, 6) < 6 else 0) for i in range(numCols/size)]) #floors are weighted 9x more than holes
 		for row in mapRef:
 			realRow = []
 			for entry in row:
-				for i in range(5):
+				for i in range(size):
 					realRow.append(entry)
-			for i in range(5):
+			for i in range(size):
 				self.map.append(realRow)
 		return self.map
 	def onFloor(self): #returns True if the current position is on an existing floor, false if it is on a hole
