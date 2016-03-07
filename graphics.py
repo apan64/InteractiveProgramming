@@ -49,11 +49,13 @@ def create_map(num_lines):
 	return map
 
 	
-def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player):
+def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player, num_lines):
 	done = False
 	index = 1
 	maps = [map1, map2, map3, map4]
 	while not done:
+		# if(maps[3].map[index][int(player.x/820)] == 0):
+		# 	break
 		pygame.display.update()
 		keys = pygame.key.get_pressed()
 		if(keys[pygame.K_LEFT] != 0):
@@ -95,7 +97,6 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 def draw_player(player, screen):
 	pygame.draw.circle(screen, player.color, [player.x, player.y - player.jumpHeight], 30)
 def draw_grid(coordinates, mapC, index, screen, num_lines):
-	copy = index
 	for i in range(num_lines):
 		for j in range(num_lines):
 			color = (0, 0, 0)
@@ -210,4 +211,4 @@ if __name__ == '__main__':
 	map2.populate(1000, num_lines)
 	map3.populate(1000, num_lines)
 	map4.populate(1000, num_lines)
-	update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play)
+	update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines)
