@@ -1,5 +1,7 @@
 #graphics
 import pygame, random, sys, time
+import numpy as np
+import cv2
 from plane import plane
 from player import player
 
@@ -11,6 +13,7 @@ red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 black = (0, 0, 0)
+middle = 250
 screen.fill(black)
 
 def create_map(num_lines):
@@ -48,7 +51,24 @@ def create_map(num_lines):
 		make_zero_depth -= 1
 	return map
 
-	
+def read_frame(face_cascade, cap):
+	et, frame = cap.read()
+	cv2.imshow('frame',frame)
+	ret, frame = cap.read()
+	faces = face_cascade.detectMultiScale(frame, scaleFactor=1.1, minSize=(20,20))
+	print faces
+	for (x,y,w,h) in faces:
+		return (x, y)
+	cv2.imshow('frame',frame)
+	return (middle, middle)	
+
+def move_x(x):
+	if int(x) - middle < -10:
+		return 10
+	elif int(x) - middle > 10:
+		return -10
+	return 0
+
 def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player, num_lines):
 	done = False
 	index = 1
@@ -56,11 +76,30 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 	myfont = pygame.font.SysFont("monospace", 20)
 	score = 0
 	max_score = 0
+
+	cap = cv2.VideoCapture(0)
+	face_cascade = cv2.CascadeClassifier('/home/youngdp/workspace/haarcascade_frontalface_alt.xml')
+	kernel = np.ones((21,21),'uint8')
+
 	while not done:
 		# if(maps[3].map[index][int(player.x/820)] == 0):
 		# 	break
 		pygame.display.update()
+		(x, y) = read_frame(face_cascade, cap)
 		keys = pygame.key.get_pressed()
+		player.x += move_x(x)
+		if(player.x > 100):
+				player.x -= 10
+		else:
+			player.x = 900
+			maps = [maps[2], maps[3], maps[1], maps[0]]
+
+		if(player.x < 920):
+			player.x += 10
+		else:
+			player.x = 120
+			maps = [maps[3], maps[2], maps[0], maps[1]]
+
 		if(keys[pygame.K_LEFT] != 0):
 			if(player.x > 100):
 				player.x -= 10
@@ -259,7 +298,7 @@ def create_horizontal_line(p):
 if __name__ == '__main__':
 	width = 1020
 	height = 1020
-	num_lines = 60
+	num_lines = 30
 	depth = 400
 	left_coordinates = create_coordinates('left', width, height, num_lines, depth)
 	right_coordinates = create_coordinates('right', width, height, num_lines, depth)
