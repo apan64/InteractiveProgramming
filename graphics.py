@@ -317,4 +317,16 @@ if __name__ == '__main__':
 	map2.populate(10000, num_lines, 6)
 	map3.populate(10000, num_lines, 6)
 	map4.populate(10000, num_lines, 6)
-	update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines)
+	try:
+		update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines)
+	except IndexError:
+		while True:
+			pygame.display.update()
+			pygame.draw.rect(screen, (0, 0, 0), (width / 2 - 100, height / 2 - 100, 200, 200), 0)
+			label = pygame.font.SysFont("comicsansms", 50).render('You made it', 1, (0, 255, 0))
+			label2 = pygame.font.SysFont("comicsansms", 50).render('to the end!', 1, (0, 255, 0))
+			screen.blit(label, (width / 2 - 100, height / 2 - 50))
+			screen.blit(label2, (width / 2 - 95, height / 2 - 20))
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit(); sys.exit();
