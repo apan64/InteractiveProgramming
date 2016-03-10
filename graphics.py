@@ -17,7 +17,8 @@ middle = 250
 screen.fill(black)
 faceCoordinates = [] #list used as a stack (pushes, pops)
 
-def read_frame(run): #function that handles reading in face location in openCV, adds relevant values to the global stack
+def read_frame(run):
+	'''Function that handles reading in face location in openCV, adds relevant values to the global stack'''
 	cap = cv2.VideoCapture(0)
 	face_cascade = cv2.CascadeClassifier('/usr/share/opencv/haarcascades/haarcascade_frontalface_alt.xml')
 	kernel = np.ones((21,21),'uint8')
@@ -32,17 +33,20 @@ def read_frame(run): #function that handles reading in face location in openCV, 
 				faceCoordinates.append((x, y))
 		if(not run.running): #had trouble forcing an end to the function when pygame is closed and even when sys.exit() is called, instead a class variable that could be edited by update was used
 			break
-def move_x(x): #determines whether character moves from face location
+def move_x(x):
+	'''Determines whether character moves from face location'''
 	if int(x) - middle < -10:
 		return 20
 	elif int(x) - middle > 10:
 		return -20
 	return 0
-def check_jump(value): #determines whether the character should jump
+def check_jump(value):
+	'''determines whether the character should jump'''
 	if (middle - value) > 40:
 		return True
 	return False
-def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player, num_lines, fThread, run): #handles all game running
+def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player, num_lines, fThread, run):
+	'''handles all game running'''
 	'''initials'''
 	done = False
 	index = 1
@@ -100,21 +104,23 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 			max_score = score
 		show_score(score, max_score, myfont, width, height)
 		draw_player(player, screen) #draws player
-		pygame.time.wait(8)
+		pygame.time.wait(10)
 		index += 1
 		for event in pygame.event.get(): #handles quitting
 			if event.type == pygame.QUIT:
 				run.running = False
 				pygame.quit(); sys.exit();
 
-def show_score(score, max_score, myfont, width, height): #displays score in center of screen
+def show_score(score, max_score, myfont, width, height):
+	'''Displays score in center of screen'''
 	pygame.draw.rect(screen, (0, 0, 0), (width / 2 - 100, height / 2 - 100, 200, 200), 0)
 	label = myfont.render(str(score), 1, (255, 255, 255))
 	label2 = myfont.render("Max score: " + str(max_score), 1, (255, 255, 255))
 	screen.blit(label2, (width / 2 - 90, height / 2 - 50))
 	screen.blit(label, (width / 2 - 50, height / 2))
 
-def round_player_loc(x, width, num_lines): #handles hitbox
+def round_player_loc(x, width, num_lines): 
+	'''Handles hitbox'''
 	new_x = 1.0 * (width - x) / width * num_lines
 	values_to_check = []
 	fix = 0
@@ -122,14 +128,16 @@ def round_player_loc(x, width, num_lines): #handles hitbox
 		fix = -1
 	elif new_x > 2 * num_lines / 3:
 		fix = 1
-	for i in range(-2, 2):
+	for i in range(-1, 1):
 		values_to_check.append([int(new_x) + i + fix, 2])
 	return values_to_check
 
-def draw_player(player, screen): #draws player
+def draw_player(player, screen):
+	'''dDaws player'''
 	pygame.draw.circle(screen, player.color, [player.x, player.y - player.jumpHeight], 30)
 
-def draw_grid(coordinates, mapC, index, screen, num_lines, reverse, locs, bottom, in_air): #handles drawing walls based on coordinates
+def draw_grid(coordinates, mapC, index, screen, num_lines, reverse, locs, bottom, in_air):
+	'''Handles drawing walls based on coordinates'''
 	for i in range(num_lines):
 		for j in range(num_lines):
 			color = (0, 0, 0)
@@ -148,7 +156,8 @@ def draw_grid(coordinates, mapC, index, screen, num_lines, reverse, locs, bottom
 				count = i * (num_lines) + j
 				pygame.draw.polygon(screen, color, coordinates[-count], 0)
 
-def collision(mapC, locs, index, in_air): #determines if player is colliding with hole
+def collision(mapC, locs, index, in_air): 
+	'''Determines if player is colliding with hole'''
 	if in_air:
 		return False
 	for loc in locs:
@@ -159,7 +168,8 @@ def collision(mapC, locs, index, in_air): #determines if player is colliding wit
 	return False
 
 
-def create_coordinates(side, width, height, num_lines, depth): #creates coordinate system for drawings to give the impression of 3D
+def create_coordinates(side, width, height, num_lines, depth):
+	'''Creates coordinate system for drawings to give the impression of 3D'''
 	y_loc = height / 2
 	interval = width / num_lines
 	horizon_line = [depth, 'vertical']
@@ -210,16 +220,20 @@ def create_coordinates(side, width, height, num_lines, depth): #creates coordina
 	return coordinates
 
 def flip_horizontal(width, height, p):
+	'''Returns a point mirrored about the y axis'''
 	return [width - p[0], p[1]]
 
 def flip_vertical(width, height, p):
+	'''Returns a point mirrored about the x axis'''
 	return [p[0], height - p[1]]
 
 
 def reflect_point(p):
+	'''Returns a point mirrored about the line y = x'''
 	return [p[1], p[0]]
 
-def find_intersection(l1, l2): #finds the intersection of two verteces
+def find_intersection(l1, l2):
+	'''Finds the intersection of two verteces'''
 	l1_b0 = l1[0]
 	l1_b1 = l1[1]
 	l2_b0 = l2[0]
@@ -234,6 +248,7 @@ def find_intersection(l1, l2): #finds the intersection of two verteces
 		return [int(x), int(y)]
 
 def find_slope_intercept(p1, p2):
+	'''Finds the point at which two lines intersect'''
 	p1_x = p1[0]
 	p1_y = p1[1]
 	p2_x = p2[0]
@@ -246,16 +261,19 @@ def find_slope_intercept(p1, p2):
 	return [1.0 * p1_y - slope * p1_x, slope]
 
 def create_vertical_line(p):
+	'''Creates a vertical line'''
 	p_x = p[0]
 	p_y = p[1]
 	return [p_x, 'vertical']
 
 def create_horizontal_line(p):
+	'''Creates a horizontal line'''
 	p_x = p[0]
 	p_y = p[1]
 	return [p_y, 0]
 
-class running: #class to be passed into both threaded functions so they can communicate when to end mid-thread
+class running: 
+	'''Class to be passed into both threaded functions so they can communicate when to end mid-thread'''
 	def __init__(self):
 		self.running = False
 
