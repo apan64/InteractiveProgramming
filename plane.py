@@ -5,19 +5,13 @@ class plane:
 		self.player = pl #the player
 		self.map = planeMap #matrix of points for floor/holes
 		self.color = color
-	# def advance(self, amount): #advances current y-position by an amount
-	# 	self.pos[1] += amount
-	# 	return self.pos
-	# def shift(self, amount): #shifts current x-position by an amount
-	# 	self.pos[0] += amount
-		# return self.pos
 	def populate(self, numRows, numCols, size): #randomly populate itself
 		self.map = []
 		mapRef = []
 		weight = 4
 		for x in range(numRows/size):
 			mapRef.append([(1 if random.randint(1, weight) < weight else 0) for i in range(numCols/size)]) #floors are weighted more than holes
-		for row in mapRef:
+		for row in mapRef: #this structure was to create holes larger than a single matrix point
 			realRow = []
 			for entry in row:
 				for i in range(size):

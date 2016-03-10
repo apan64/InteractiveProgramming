@@ -10,6 +10,4 @@ class player:
 	def setPos(self, xPos, yPos): #set the new position
 		self.x = xPos
 		self.y = yPos
-	def advance(self):
-		self.y += self.increment
 		
