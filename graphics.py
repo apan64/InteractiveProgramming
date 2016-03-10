@@ -1,7 +1,6 @@
 #graphics
-import pygame, random, sys, time
+import pygame, random, sys, time, cv2, threading
 import numpy as np
-import cv2
 from plane import plane
 from player import player
 
@@ -15,6 +14,7 @@ blue = (0, 0, 255)
 black = (0, 0, 0)
 middle = 250
 screen.fill(black)
+faceCoordinates = []
 
 def create_map(num_lines):
 	hole_size = 10
@@ -24,18 +24,6 @@ def create_map(num_lines):
 		for j in range(num_lines):
 			nested_map.append(1)
 		map.append(nested_map)
-
-	"""#make holes
-	for i in range(100):
-		width = random.randint(5, 25)
-		depth = random.randint(5, 15)
-		index1 = random.randint(0, 1000)
-		index2 = random.randint(0, 50)
-		for j in range(width):
-			for k in range(depth):
-				if index1 + depth < 1000 and index2 + width < num_lines:
-					map[index1 + depth][index2 + width] = 0
-		map"""
 
 	make_zero_width = 0
 	make_zero_depth = 0
@@ -51,41 +39,45 @@ def create_map(num_lines):
 		make_zero_depth -= 1
 	return map
 
-def read_frame(face_cascade, cap):
-	et, frame = cap.read()
-	cv2.imshow('frame',frame)
-	ret, frame = cap.read()
-	faces = face_cascade.detectMultiScale(frame, scaleFactor=1.1, minSize=(20,20))
-	print faces
-	for (x,y,w,h) in faces:
-		return (x, y)
-	cv2.imshow('frame',frame)
-	return (middle, middle)	
-
+def read_frame(run):
+	cap = cv2.VideoCapture(0)
+	face_cascade = cv2.CascadeClassifier('/usr/share/opencv/haarcascades/haarcascade_frontalface_alt.xml')
+	kernel = np.ones((21,21),'uint8')
+	while(True):
+		et, frame = cap.read()
+		ret, frame = cap.read()
+		faces = face_cascade.detectMultiScale(frame, scaleFactor=1.1, minSize=(20,20))
+		print faces
+		for (x,y,w,h) in faces:
+			if(x == None or y == None):
+				faceCoordinates.append((middle, middle))
+			else:
+				faceCoordinates.append((x, y))
+		if(not run.running):
+			break
 def move_x(x):
 	if int(x) - middle < -10:
 		return 10
 	elif int(x) - middle > 10:
 		return -10
 	return 0
-
-def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player, num_lines):
+def check_jump(value):
+	if (middle - value) > 40:
+		return True
+	return False
+def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3, map4, player, num_lines, fThread, run):
 	done = False
 	index = 1
 	maps = [map1, map2, map3, map4]
 	myfont = pygame.font.SysFont("monospace", 20)
 	score = 0
 	max_score = 0
-
-	cap = cv2.VideoCapture(0)
-	face_cascade = cv2.CascadeClassifier('/home/youngdp/workspace/haarcascade_frontalface_alt.xml')
-	kernel = np.ones((21,21),'uint8')
-
 	while not done:
-		# if(maps[3].map[index][int(player.x/820)] == 0):
-		# 	break
 		pygame.display.update()
-		(x, y) = read_frame(face_cascade, cap)
+		try:
+			(x, y) = faceCoordinates.pop()
+		except IndexError:
+			(x, y) = (middle, middle)
 		keys = pygame.key.get_pressed()
 		player.x += move_x(x)
 		if(player.x > 100):
@@ -112,7 +104,7 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 			else:
 				player.x = 120
 				maps = [maps[3], maps[2], maps[0], maps[1]]
-		if(keys[pygame.K_UP] != 0 and not player.inAir):
+		if((keys[pygame.K_UP] != 0 or check_jump(y)) and not player.inAir):
 			player.goingUp = True
 			player.inAir = True
 		elif(player.inAir):
@@ -142,6 +134,7 @@ def update(coordinate1, coordinate2, coordinate3, coordinate4, map1, map2, map3,
 		index += 1
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
+				run.running = False
 				pygame.quit(); sys.exit();
 
 def show_score(score, max_score, myfont, width, height):
@@ -210,13 +203,11 @@ def create_coordinates(side, width, height, num_lines, depth):
 	for i in range(num_lines + 1):
 		lines.append(find_slope_intercept([x, interval * i], [width / 2, y_loc]))
 		red = (255, 0, 0)
-		#pygame.draw.line(screen, red, [x, interval * i], [width / 2, y_loc], 2)
 
 
 	point = find_intersection(horizon_line, lines[0])
 
 	cross_line = find_slope_intercept(point, [x, height])
-	#pygame.draw.line(screen, green, point, [x, height], 2)
 
 	vert_lines = []
 	for i in range(num_lines + 1):
@@ -273,7 +264,7 @@ def find_intersection(l1, l2):
 		return [int(x), int(y)]
 
 def find_slope_intercept(p1, p2):
-	print p1, " ", p2
+	# print p1, " ", p2
 	p1_x = p1[0]
 	p1_y = p1[1]
 	p2_x = p2[0]
@@ -295,6 +286,10 @@ def create_horizontal_line(p):
 	p_y = p[1]
 	return [p_y, 0]
 
+class running:
+	def __init__(self):
+		self.running = False
+
 if __name__ == '__main__':
 	width = 1020
 	height = 1020
@@ -304,10 +299,6 @@ if __name__ == '__main__':
 	right_coordinates = create_coordinates('right', width, height, num_lines, depth)
 	top_coordinates = create_coordinates('top', width, height, num_lines, depth)
 	bottom_coordinates = create_coordinates('bottom', width, height, num_lines, depth)
-	# map1 = create_map(num_lines)
-	# map2 = create_map(num_lines)
-	# map3 = create_map(num_lines)
-	# map4 = create_map(num_lines)
 	play = player(510, 925)
 	map1 = plane(1, play, (0, 125, 125))
 	map2 = plane(2, play, (0, 125, 125))
@@ -317,8 +308,15 @@ if __name__ == '__main__':
 	map2.populate(10000, num_lines, 6)
 	map3.populate(10000, num_lines, 6)
 	map4.populate(10000, num_lines, 6)
+	r = running()
 	try:
-		update(left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines)
+		faceThread = threading.Thread(target = read_frame, name = 'face', args = (r,))
+		gameThread = threading.Thread(target = update, name = 'game', args = (left_coordinates, right_coordinates, bottom_coordinates, top_coordinates, map1, map2, map3, map4, play, num_lines, faceThread, r))
+		gameThread.start()
+		r.running = True
+		faceThread.start()
+		gameThread.join()
+		faceThread.join()
 	except IndexError:
 		while True:
 			pygame.display.update()
@@ -329,4 +327,5 @@ if __name__ == '__main__':
 			screen.blit(label2, (width / 2 - 95, height / 2 - 20))
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT:
+					r.running = False
 					pygame.quit(); sys.exit();
