@@ -203,13 +203,11 @@ def create_coordinates(side, width, height, num_lines, depth):
 	for i in range(num_lines + 1):
 		lines.append(find_slope_intercept([x, interval * i], [width / 2, y_loc]))
 		red = (255, 0, 0)
-		#pygame.draw.line(screen, red, [x, interval * i], [width / 2, y_loc], 2)
 
 
 	point = find_intersection(horizon_line, lines[0])
 
 	cross_line = find_slope_intercept(point, [x, height])
-	#pygame.draw.line(screen, green, point, [x, height], 2)
 
 	vert_lines = []
 	for i in range(num_lines + 1):
