@@ -47,7 +47,6 @@ def read_frame(run):
 		et, frame = cap.read()
 		ret, frame = cap.read()
 		faces = face_cascade.detectMultiScale(frame, scaleFactor=1.1, minSize=(20,20))
-		print faces
 		for (x,y,w,h) in faces:
 			if(x == None or y == None):
 				faceCoordinates.append((middle, middle))
